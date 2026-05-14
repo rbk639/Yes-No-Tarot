@@ -5,7 +5,6 @@ from google import genai
 
 # -----------------------------------------
 # TAROT DECK (78 CARDS)
-# Fixed YES/NO meanings based on card index.
 # -----------------------------------------
 
 MAJOR_ARCANA = [
@@ -21,7 +20,6 @@ RANKS = ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven",
          "Eight", "Nine", "Ten", "Page", "Knight", "Queen", "King"]
 
 MINOR_ARCANA = [f"{rank} of {suit}" for suit in SUITS for rank in RANKS]
-
 TAROT_DECK = MAJOR_ARCANA + MINOR_ARCANA
 
 CARD_MEANINGS = {
@@ -30,48 +28,43 @@ CARD_MEANINGS = {
 }
 
 # -----------------------------------------
-# CARD IMAGE MAPPING (Rider-Waite, public domain)
-# Source: github.com/ekelen/tarot-api
+# CARD IMAGE MAPPING
 # -----------------------------------------
 
-_BASE_IMG = "https://raw.githubusercontent.com/ekelen/tarot-api/master/public/cards/"
+_BASE_IMG = "https://ishtarcollective.blob.core.windows.net/rider-waite-tarot/"
 
-_MAJOR_FILES = {
-    "The Fool": "m00.jpg", "The Magician": "m01.jpg",
-    "The High Priestess": "m02.jpg", "The Empress": "m03.jpg",
-    "The Emperor": "m04.jpg", "The Hierophant": "m05.jpg",
-    "The Lovers": "m06.jpg", "The Chariot": "m07.jpg",
-    "Strength": "m08.jpg", "The Hermit": "m09.jpg",
-    "Wheel of Fortune": "m10.jpg", "Justice": "m11.jpg",
-    "The Hanged Man": "m12.jpg", "Death": "m13.jpg",
-    "Temperance": "m14.jpg", "The Devil": "m15.jpg",
-    "The Tower": "m16.jpg", "The Star": "m17.jpg",
-    "The Moon": "m18.jpg", "The Sun": "m19.jpg",
-    "Judgement": "m20.jpg", "The World": "m21.jpg",
+_MAJOR_INDEX = {
+    "The Fool": 0, "The Magician": 1, "The High Priestess": 2,
+    "The Empress": 3, "The Emperor": 4, "The Hierophant": 5,
+    "The Lovers": 6, "The Chariot": 7, "Strength": 8,
+    "The Hermit": 9, "Wheel of Fortune": 10, "Justice": 11,
+    "The Hanged Man": 12, "Death": 13, "Temperance": 14,
+    "The Devil": 15, "The Tower": 16, "The Star": 17,
+    "The Moon": 18, "The Sun": 19, "Judgement": 20, "The World": 21,
 }
 
-_SUIT_PREFIX = {
+_SUIT_NAME = {
     "Wands": "wands", "Cups": "cups",
-    "Swords": "swords", "Pentacles": "pents",
+    "Swords": "swords", "Pentacles": "pentacles",
 }
 
 _RANK_NUM = {
-    "Ace": "01", "Two": "02", "Three": "03", "Four": "04", "Five": "05",
-    "Six": "06", "Seven": "07", "Eight": "08", "Nine": "09", "Ten": "10",
-    "Page": "11", "Knight": "12", "Queen": "13", "King": "14",
+    "Ace": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5,
+    "Six": 6, "Seven": 7, "Eight": 8, "Nine": 9, "Ten": 10,
+    "Page": 11, "Knight": 12, "Queen": 13, "King": 14,
 }
 
 
 def get_card_image_url(card_name):
-    if card_name in _MAJOR_FILES:
-        return _BASE_IMG + _MAJOR_FILES[card_name]
+    if card_name in _MAJOR_INDEX:
+        return _BASE_IMG + f"major-{_MAJOR_INDEX[card_name]}.jpg"
     parts = card_name.split(" of ")
     if len(parts) == 2:
         rank, suit = parts
-        prefix = _SUIT_PREFIX.get(suit)
-        num = _RANK_NUM.get(rank)
-        if prefix and num:
-            return _BASE_IMG + f"{prefix}{num}.jpg"
+        suit_str = _SUIT_NAME.get(suit)
+        rank_num = _RANK_NUM.get(rank)
+        if suit_str and rank_num:
+            return _BASE_IMG + f"{suit_str}-{rank_num}.jpg"
     return None
 
 
@@ -108,118 +101,179 @@ Reading: [30 words or fewer]
 
 CUSTOM_CSS = """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Raleway:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
 [data-testid="stAppViewContainer"] { background-color: #0E0C1A; }
 [data-testid="stHeader"]           { background-color: #0E0C1A; }
 [data-testid="stSidebar"]          { background-color: #0E0C1A; }
 
+/* Centre all block content */
 [data-testid="block-container"] {
-    padding-top: 2.5rem;
-    max-width: 760px;
+    padding-top: 3rem;
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
 }
 
+/* Push Streamlit's inner columns/widgets back to full width */
+[data-testid="stVerticalBlock"] {
+    align-items: center;
+}
+
+/* Main title */
 h1 {
+    font-family: 'Cinzel', serif !important;
     color: #F0EAD6 !important;
-    font-size: 2rem !important;
-    letter-spacing: 0.05em !important;
+    font-size: 2.4rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
     text-align: center !important;
-    margin-bottom: 1.5rem !important;
+    margin-bottom: 0.2rem !important;
 }
 
-label[data-testid="stWidgetLabel"] p {
-    color: #C8BFAA !important;
-    font-size: 0.9rem !important;
-    letter-spacing: 0.03em;
+/* Subtitle */
+.tarot-subtitle {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 1rem;
+    color: #9B84B8;
+    letter-spacing: 0.06em;
+    text-align: center;
+    margin-bottom: 2rem;
+    margin-top: 0;
 }
 
+/* Hide the input label */
+label[data-testid="stWidgetLabel"] {
+    display: none !important;
+}
+
+/* Text input */
 [data-testid="stTextInput"] input {
     background-color: #1A1628 !important;
     border: 1px solid #3A3258 !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     color: #F0EAD6 !important;
+    font-family: 'Raleway', sans-serif !important;
     font-size: 1rem !important;
+    font-weight: 400 !important;
+    text-align: center !important;
+    padding: 0.75rem 1rem !important;
 }
-[data-testid="stTextInput"] input::placeholder { color: #5C5470 !important; }
+[data-testid="stTextInput"] input::placeholder {
+    color: #5C5470 !important;
+    font-style: italic;
+    font-family: 'Raleway', sans-serif !important;
+}
+/* Override Streamlit's red focus — use soft violet instead */
 [data-testid="stTextInput"] input:focus {
-    border-color: #C8973A !important;
-    box-shadow: 0 0 0 2px rgba(200,151,58,0.25) !important;
+    border-color: #7C5CBF !important;
+    box-shadow: 0 0 0 2px rgba(124, 92, 191, 0.25) !important;
+    outline: none !important;
+}
+[data-testid="stTextInput"] > div:focus-within {
+    border-color: #7C5CBF !important;
+    box-shadow: none !important;
 }
 
+/* Button — deep violet, white text */
 [data-testid="stButton"] button[kind="primary"] {
-    background-color: #C8973A !important;
-    border: none !important;
-    color: #0E0C1A !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    letter-spacing: 0.05em !important;
-    border-radius: 8px !important;
-    padding: 0.6rem 2rem !important;
+    background-color: #5C3D8F !important;
+    border: 1px solid #7C5CBF !important;
+    color: #F0EAD6 !important;
+    font-family: 'Cinzel', serif !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    letter-spacing: 0.1em !important;
+    border-radius: 10px !important;
+    padding: 0.65rem 2rem !important;
     width: 100%;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 [data-testid="stButton"] button[kind="primary"]:hover {
-    background-color: #E0AA47 !important;
+    background-color: #7045AA !important;
+    border-color: #9B78D4 !important;
 }
 
+/* Warning */
 [data-testid="stAlert"] {
     background-color: #251E38 !important;
-    border: 1px solid #C8973A !important;
+    border: 1px solid #7C5CBF !important;
     color: #F0EAD6 !important;
     border-radius: 8px !important;
+    font-family: 'Raleway', sans-serif !important;
 }
 
-[data-testid="stSpinner"] p { color: #9B84B8 !important; }
+/* Spinner */
+[data-testid="stSpinner"] p {
+    color: #9B84B8 !important;
+    font-family: 'Raleway', sans-serif !important;
+}
 
+/* Card image */
 [data-testid="stImage"] img {
     border-radius: 12px !important;
-    border: 2px solid #C8973A !important;
+    border: 2px solid #7C5CBF !important;
 }
 
+/* Reading card */
 .reading-card {
     background-color: #1A1628;
     border: 1px solid #3A3258;
     border-radius: 14px;
-    padding: 1.6rem 1.8rem;
+    padding: 1.8rem 2rem;
+    text-align: left;
 }
 .card-drawn-label {
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: #9B84B8;
-    margin: 0 0 4px;
+    color: #7C5CBF;
+    margin: 0 0 5px;
 }
 .card-drawn-name {
-    font-size: 1.2rem;
+    font-family: 'Cinzel', serif;
+    font-size: 1.15rem;
     font-weight: 600;
     color: #F0EAD6;
     margin: 0 0 1.1rem;
-    padding-bottom: 0.8rem;
-    border-bottom: 1px solid #3A3258;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid #2E2540;
 }
 .answer-yes {
-    font-size: 2.8rem;
-    font-weight: 800;
+    font-family: 'Cinzel', serif;
+    font-size: 2.6rem;
+    font-weight: 700;
     color: #F4C430;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     margin: 0 0 1rem;
     line-height: 1;
 }
 .answer-no {
-    font-size: 2.8rem;
-    font-weight: 800;
+    font-family: 'Cinzel', serif;
+    font-size: 2.6rem;
+    font-weight: 700;
     color: #9B84B8;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     margin: 0 0 1rem;
     line-height: 1;
 }
 .reading-text {
+    font-family: 'Raleway', sans-serif;
     font-size: 0.95rem;
-    color: #C8BFAA;
     font-style: italic;
-    line-height: 1.75;
+    font-weight: 300;
+    color: #C8BFAA;
+    line-height: 1.8;
     margin: 0;
 }
 
-[data-testid="stMarkdown"] p { color: #C8BFAA !important; }
+[data-testid="stMarkdown"] p {
+    color: #C8BFAA !important;
+    font-family: 'Raleway', sans-serif !important;
+}
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #0E0C1A; }
@@ -300,9 +354,9 @@ def render_reading(card_name, answer, reading, image_url):
             st.image(image_url, use_container_width=True)
         else:
             st.markdown(
-                "<div style='height:300px;background:#1A1628;border:2px solid #C8973A;"
+                "<div style='height:300px;background:#1A1628;border:2px solid #7C5CBF;"
                 "border-radius:12px;display:flex;align-items:center;justify-content:center;"
-                "color:#5C5470;font-size:2rem;'>🃏</div>",
+                "color:#3A3258;font-size:2rem;'>🃏</div>",
                 unsafe_allow_html=True,
             )
 
@@ -339,11 +393,18 @@ def main():
     if "result" not in st.session_state:
         st.session_state.result = None
 
+    # Title + subtitle
     st.title("🔮 Yes or No Tarot")
+    st.markdown(
+        '<p class="tarot-subtitle">The cards are listening. Ask what your heart seeks.</p>',
+        unsafe_allow_html=True,
+    )
 
+    # Input — label hidden via CSS, label_visibility also collapsed for safety
     question = st.text_input(
-        "Your yes-or-no question",
-        placeholder="Will I get the job?",
+        "question",
+        placeholder="Ask away...",
+        label_visibility="collapsed",
     )
 
     btn_label = "✨ Draw Another Card" if st.session_state.has_drawn else "✨ Draw a Card"
